@@ -31,6 +31,21 @@ class PortalExportTests(unittest.TestCase):
             self.assertIsNone(payload["projects"][1]["lat"])
             self.assertIsNone(payload["projects"][1]["commune"])
 
+    def test_identical_export_does_not_rewrite_json(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = root / "projects.csv"
+            target = root / "projects.json"
+            source.write_text(
+                "num;name;Commune;Commune_recherche;parcelle;lon;lat;date\n"
+                "1;Orbe - BF 2;Orbe;Orbe;2;6.5;46.7;2026-01-02 00:00:00\n",
+                encoding="utf-8",
+            )
+            update_portal.export_portal(source, target)
+            first_content = target.read_bytes()
+            update_portal.export_portal(source, target)
+            self.assertEqual(target.read_bytes(), first_content)
+
 
 if __name__ == "__main__":
     unittest.main()

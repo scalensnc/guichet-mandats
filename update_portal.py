@@ -98,6 +98,22 @@ def export_portal(csv_path: Path = DEFAULT_CSV, json_path: Path = DEFAULT_JSON) 
 
     json_path = Path(json_path).resolve()
     json_path.parent.mkdir(parents=True, exist_ok=True)
+
+    # Ne modifie pas le fichier pour une simple nouvelle heure d'execution.
+    # Ainsi, le script de publication ne cree un commit que si les dossiers ou
+    # leur date de reference ont vraiment change.
+    if json_path.exists():
+        try:
+            existing = json.loads(json_path.read_text(encoding="utf-8"))
+            if (
+                existing.get("source_updated_at") == payload["source_updated_at"]
+                and existing.get("count") == payload["count"]
+                and existing.get("projects") == payload["projects"]
+            ):
+                return len(projects)
+        except (json.JSONDecodeError, OSError, AttributeError):
+            pass
+
     temporary_name: Optional[str] = None
     try:
         with tempfile.NamedTemporaryFile(
