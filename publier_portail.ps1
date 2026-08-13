@@ -33,6 +33,36 @@ try {
 
     Write-Host "Git utilise : $GitExecutable"
 
+    function Invoke-ProjectGit {
+        param(
+            [Parameter(Mandatory = $true)]
+            [string[]]$Arguments,
+            [int[]]$AllowedExitCodes = @(0)
+        )
+
+        # Le depot a initialement ete cree par Codex. La configuration locale
+        # safe.directory evite qu'une autre session Windows refuse de l'utiliser
+        # uniquement a cause du proprietaire inscrit sur le dossier .git.
+        $PreviousErrorActionPreference = $ErrorActionPreference
+        $ErrorActionPreference = "Continue"
+        try {
+            $GitOutput = & $GitExecutable -c "safe.directory=$ProjectRoot" @Arguments 2>&1
+            $GitExitCode = $LASTEXITCODE
+        }
+        finally {
+            $ErrorActionPreference = $PreviousErrorActionPreference
+        }
+
+        if ($GitOutput) {
+            $GitOutput | ForEach-Object { Write-Host $_ }
+        }
+        if ($AllowedExitCodes -notcontains $GitExitCode) {
+            $CommandText = "git " + ($Arguments -join " ")
+            throw "$CommandText a echoue avec le code $GitExitCode. Le message Git figure juste au-dessus."
+        }
+        return $GitExitCode
+    }
+
     if (-not $DepuisCsv -and -not (Test-Path Env:BEXIO_API_TOKEN)) {
         throw "BEXIO_API_TOKEN n'est pas definie. Utilisez -DepuisCsv pour publier le CSV existant."
     }
@@ -47,13 +77,11 @@ try {
         throw "La mise a jour du portail a echoue."
     }
 
-    & $GitExecutable add -- portal/data/projects.json
-    if ($LASTEXITCODE -ne 0) {
-        throw "Git n'a pas pu preparer le fichier de donnees (git add)."
-    }
+    Invoke-ProjectGit -Arguments @("add", "--", "portal/data/projects.json") | Out-Null
 
-    & $GitExecutable diff --cached --quiet
-    $DiffExitCode = $LASTEXITCODE
+    $DiffExitCode = Invoke-ProjectGit `
+        -Arguments @("diff", "--cached", "--quiet") `
+        -AllowedExitCodes @(0, 1)
     if ($DiffExitCode -eq 0) {
         Write-Host "Aucune modification de dossier a publier."
         exit 0
@@ -62,15 +90,9 @@ try {
         throw "Git n'a pas pu comparer les modifications preparees."
     }
 
-    & $GitExecutable commit -m $Message
-    if ($LASTEXITCODE -ne 0) {
-        throw "La creation du commit a echoue. Consultez le message Git affiche juste au-dessus."
-    }
+    Invoke-ProjectGit -Arguments @("commit", "-m", $Message) | Out-Null
 
-    & $GitExecutable push origin main
-    if ($LASTEXITCODE -ne 0) {
-        throw "L'envoi vers GitHub a echoue."
-    }
+    Invoke-ProjectGit -Arguments @("push", "origin", "main") | Out-Null
 
     Write-Host "Mise a jour envoyee. GitHub Pages va republier le portail."
 }
