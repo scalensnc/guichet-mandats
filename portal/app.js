@@ -36,6 +36,16 @@ function initMap() {
   }).addTo(state.map);
   state.clusters = L.markerClusterGroup({ showCoverageOnHover: false, maxClusterRadius: 48 });
   state.map.addLayer(state.clusters);
+
+  // Leaflet mémorise les dimensions du conteneur. GitHub Pages et les
+  // changements de breakpoint peuvent stabiliser la grille après cette
+  // initialisation : on recalcule alors la surface utile de la carte.
+  const mapElement = document.querySelector("#map");
+  const resizeObserver = new ResizeObserver(() => {
+    requestAnimationFrame(() => state.map?.invalidateSize({ animate: false }));
+  });
+  resizeObserver.observe(mapElement);
+  window.addEventListener("load", () => state.map.invalidateSize({ animate: false }), { once: true });
 }
 
 function popupContent(project) {

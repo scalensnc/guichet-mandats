@@ -2,6 +2,7 @@ __pycache__/
 *.py[cod]
 .DS_Store
 Thumbs.db
+node_modules/
 
 # Fichiers locaux ou métier non nécessaires au dépôt public
 Modification_Token.docx
@@ -11,4 +12,3 @@ AMTOVZ_CSV_LV95.csv
 
 # Fichiers temporaires produits par les exports atomiques
 .*.tmp
-
