@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Carte et recherche des mandats cadastraux">
+  <title>Guichet des mandats</title>
+  <link rel="preconnect" href="https://unpkg.com">
+  <link rel="preconnect" href="https://tile.openstreetmap.org">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIINfQ3ynh5D8Fq3yQCqjMZfS3RVxA3z7aA=" crossorigin="">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#" aria-label="Accueil du guichet">
+      <span class="brand-mark" aria-hidden="true">M</span>
+      <span><strong>Guichet des mandats</strong><small>Consultation cartographique</small></span>
+    </a>
+    <div class="update-status"><span class="status-dot"></span><span id="updatedAt">Chargement des données…</span></div>
+  </header>
+
+  <main>
+    <section class="hero" aria-labelledby="page-title">
+      <div>
+        <p class="eyebrow">Base territoriale</p>
+        <h1 id="page-title">Retrouvez un dossier,<br>simplement.</h1>
+        <p class="intro">Recherchez par numéro, adresse, commune ou parcelle, puis localisez le mandat sur la carte.</p>
+      </div>
+      <div class="stats" aria-label="Statistiques de la base">
+        <div><strong id="totalStat">—</strong><span>dossiers</span></div>
+        <div><strong id="mappedStat">—</strong><span>localisés</span></div>
+        <div><strong id="communesStat">—</strong><span>communes</span></div>
+      </div>
+    </section>
+
+    <section class="workspace" aria-label="Recherche des mandats">
+      <aside class="sidebar">
+        <div class="filters">
+          <label class="search-field">
+            <span class="sr-only">Rechercher</span>
+            <svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-4-4"></path></svg>
+            <input id="searchInput" type="search" placeholder="N°, adresse, commune, parcelle…" autocomplete="off">
+          </label>
+          <div class="filter-row">
+            <label><span>Commune</span><select id="communeFilter"><option value="">Toutes</option></select></label>
+            <label><span>Année</span><select id="yearFilter"><option value="">Toutes</option></select></label>
+          </div>
+          <button id="resetFilters" class="reset-button" type="button">Réinitialiser les filtres</button>
+        </div>
+        <div class="results-heading">
+          <h2>Résultats</h2><span id="resultCount" aria-live="polite">—</span>
+        </div>
+        <div id="projectList" class="project-list" aria-busy="true"></div>
+        <button id="loadMore" class="load-more" type="button" hidden>Afficher plus</button>
+      </aside>
+      <section class="map-panel" aria-label="Carte des mandats">
+        <div id="map"></div>
+        <div class="map-note"><span></span>Les dossiers sans coordonnées restent accessibles dans la liste.</div>
+      </section>
+    </section>
+  </main>
+
+  <dialog id="projectDialog" class="project-dialog">
+    <button class="dialog-close" type="button" aria-label="Fermer">×</button>
+    <p class="dialog-kicker">Dossier <span id="detailId"></span></p>
+    <h2 id="detailName"></h2>
+    <dl>
+      <div><dt>Commune</dt><dd id="detailCommune"></dd></div>
+      <div><dt>Parcelle</dt><dd id="detailParcel"></dd></div>
+      <div><dt>Date</dt><dd id="detailDate"></dd></div>
+      <div><dt>Localisation</dt><dd id="detailLocation"></dd></div>
+    </dl>
+    <button id="showOnMap" class="primary-button" type="button">Voir sur la carte</button>
+  </dialog>
+
+  <template id="projectTemplate">
+    <button class="project-card" type="button">
+      <span class="card-top"><span class="project-number"></span><span class="project-date"></span></span>
+      <strong class="project-name"></strong>
+      <span class="project-meta"><span class="pin" aria-hidden="true"></span><span class="project-commune"></span><span class="project-parcel"></span></span>
+    </button>
+  </template>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

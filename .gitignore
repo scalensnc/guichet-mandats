@@ -1,0 +1,14 @@
+__pycache__/
+*.py[cod]
+.DS_Store
+Thumbs.db
+
+# Fichiers locaux ou métier non nécessaires au dépôt public
+Modification_Token.docx
+MANDATS.qgz
+projects.csv
+AMTOVZ_CSV_LV95.csv
+
+# Fichiers temporaires produits par les exports atomiques
+.*.tmp
+
