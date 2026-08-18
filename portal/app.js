@@ -1,8 +1,9 @@
 "use strict";
 
-const state = { projects: [], filtered: [], visible: 30, map: null, clusters: null, markers: new Map(), selected: null };
+const state = { projects: [], cadastrations: [], filtered: [], visible: 30, map: null, clusters: null, markers: new Map(), selected: null };
 const elements = {
   search: document.querySelector("#searchInput"),
+  layer: document.querySelector("#layerFilter"),
   commune: document.querySelector("#communeFilter"),
   year: document.querySelector("#yearFilter"),
   reset: document.querySelector("#resetFilters"),
@@ -25,6 +26,14 @@ function formatDate(value) {
 
 function normalize(value) {
   return String(value || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("fr");
+}
+
+function activeProjects() {
+  return elements.layer.value === "cadastrations" ? state.cadastrations : state.projects;
+}
+
+function displayDate(project) {
+  return project.received_date || project.date;
 }
 
 function initMap() {
@@ -55,7 +64,8 @@ function popupContent(project) {
   title.className = "popup-title";
   meta.className = "popup-meta";
   title.textContent = project.name || `Dossier ${project.id || ""}`;
-  meta.textContent = `${project.commune || "Commune inconnue"} · BF ${project.parcel || "—"}`;
+  const type = project.kind === "cadastration" ? "Cadastration à faire · " : "";
+  meta.textContent = `${type}${project.commune || "Commune inconnue"} · BF ${project.parcel || "—"}`;
   wrapper.append(title, meta);
   return wrapper;
 }
@@ -63,7 +73,8 @@ function popupContent(project) {
 function rebuildMarkers() {
   state.clusters.clearLayers();
   state.markers.clear();
-  const icon = L.divIcon({ className: "mandate-marker", iconSize: [17, 17] });
+  const isCadastration = elements.layer.value === "cadastrations";
+  const icon = L.divIcon({ className: isCadastration ? "cadastration-marker" : "mandate-marker", iconSize: isCadastration ? [19, 19] : [17, 17] });
   const markers = [];
   for (const project of state.filtered) {
     if (!Number.isFinite(project.lat) || !Number.isFinite(project.lon)) continue;
@@ -81,9 +92,12 @@ function renderList() {
   const fragment = document.createDocumentFragment();
   for (const project of state.filtered.slice(0, state.visible)) {
     const card = elements.template.content.firstElementChild.cloneNode(true);
+    const isCadastration = project.kind === "cadastration";
+    card.classList.toggle("is-cadastration", isCadastration);
     card.querySelector(".project-number").textContent = project.id ? `N° ${project.id}` : "Sans numéro";
-    card.querySelector(".project-date").textContent = formatDate(project.date);
+    card.querySelector(".project-date").textContent = formatDate(displayDate(project));
     card.querySelector(".project-name").textContent = project.name || "Dossier sans intitulé";
+    card.querySelector(".project-kind").hidden = !isCadastration;
     card.querySelector(".project-commune").textContent = project.commune || "Commune inconnue";
     card.querySelector(".project-parcel").textContent = project.parcel ? `BF ${project.parcel}` : "Sans parcelle";
     card.addEventListener("click", () => openDetails(project));
@@ -105,11 +119,11 @@ function applyFilters() {
   const query = normalize(elements.search.value.trim());
   const commune = elements.commune.value;
   const year = elements.year.value;
-  state.filtered = state.projects.filter((project) => {
-    const haystack = normalize([project.id, project.name, project.commune, project.parcel].join(" "));
+  state.filtered = activeProjects().filter((project) => {
+    const haystack = normalize([project.id, project.name, project.commune, project.parcel, project.details].join(" "));
     return (!query || haystack.includes(query))
       && (!commune || project.commune === commune)
-      && (!year || String(project.date || "").startsWith(year));
+      && (!year || String(displayDate(project) || "").startsWith(year));
   });
   state.visible = 30;
   renderList();
@@ -125,6 +139,15 @@ function openDetails(project) {
   document.querySelector("#detailDate").textContent = formatDate(project.date);
   document.querySelector("#detailLocation").textContent = Number.isFinite(project.lat) ? "Disponible sur la carte" : "Coordonnées indisponibles";
   document.querySelector("#showOnMap").hidden = !Number.isFinite(project.lat);
+  const optionalDetails = [
+    ["detailReceptionRow", "detailReception", project.received_date && formatDate(project.received_date)],
+    ["detailMeasurementRow", "detailMeasurement", project.measurement],
+    ["detailDetailsRow", "detailDetails", project.details],
+  ];
+  for (const [rowId, valueId, value] of optionalDetails) {
+    document.querySelector(`#${rowId}`).hidden = !value;
+    document.querySelector(`#${valueId}`).textContent = value || "";
+  }
   elements.dialog.showModal();
 }
 
@@ -139,33 +162,42 @@ function showSelectedOnMap() {
 }
 
 function populateFilters() {
-  const communes = [...new Set(state.projects.map((p) => p.commune).filter(Boolean))].sort(collator.compare);
-  const years = [...new Set(state.projects.map((p) => p.date?.slice(0, 4)).filter(Boolean))].sort().reverse();
+  const projects = activeProjects();
+  const communes = [...new Set(projects.map((p) => p.commune).filter(Boolean))].sort(collator.compare);
+  const years = [...new Set(projects.map((p) => displayDate(p)?.slice(0, 4)).filter(Boolean))].sort().reverse();
+  elements.commune.options.length = 1;
+  elements.year.options.length = 1;
   for (const commune of communes) elements.commune.add(new Option(commune, commune));
   for (const year of years) elements.year.add(new Option(year, year));
 }
 
-function renderStats(payload) {
+function renderStats(payload, cadastrationPayload) {
   const mapped = state.projects.filter((p) => Number.isFinite(p.lat) && Number.isFinite(p.lon)).length;
   const communes = new Set(state.projects.map((p) => p.commune).filter(Boolean)).size;
   document.querySelector("#totalStat").textContent = numberFormatter.format(state.projects.length);
   document.querySelector("#mappedStat").textContent = numberFormatter.format(mapped);
   document.querySelector("#communesStat").textContent = numberFormatter.format(communes);
+  document.querySelector("#cadastrationStat").textContent = numberFormatter.format(state.cadastrations.length);
   document.querySelector("#updatedAt").textContent = payload.source_updated_at
-    ? `Données au ${formatDate(payload.source_updated_at)}`
+    ? `Bexio au ${formatDate(payload.source_updated_at)} · cadastrations au ${formatDate(cadastrationPayload.source_updated_at)}`
     : "Date de mise à jour inconnue";
 }
 
 async function start() {
   initMap();
   try {
-    const response = await fetch("data/projects.json", { cache: "no-store" });
+    const [response, cadastrationResponse] = await Promise.all([
+      fetch("data/projects.json", { cache: "no-store" }),
+      fetch("data/cadastrations.json", { cache: "no-store" }),
+    ]);
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const payload = await response.json();
-    state.projects = Array.isArray(payload.projects) ? payload.projects : [];
-    state.filtered = state.projects;
+    const cadastrationPayload = cadastrationResponse.ok ? await cadastrationResponse.json() : {};
+    state.projects = (Array.isArray(payload.projects) ? payload.projects : []).map((project) => ({ ...project, kind: "project" }));
+    state.cadastrations = (Array.isArray(cadastrationPayload.cadastrations) ? cadastrationPayload.cadastrations : []).map((project) => ({ ...project, kind: "cadastration" }));
+    state.filtered = activeProjects();
     populateFilters();
-    renderStats(payload);
+    renderStats(payload, cadastrationPayload);
     renderList();
     rebuildMarkers();
   } catch (error) {
@@ -177,6 +209,17 @@ async function start() {
 
 let searchTimer;
 elements.search.addEventListener("input", () => { clearTimeout(searchTimer); searchTimer = setTimeout(applyFilters, 160); });
+elements.layer.addEventListener("change", () => {
+  elements.commune.value = "";
+  elements.year.value = "";
+  populateFilters();
+  document.querySelector(".map-note").classList.toggle("is-cadastration", elements.layer.value === "cadastrations");
+  document.querySelector("#map").classList.toggle("cadastration-mode", elements.layer.value === "cadastrations");
+  document.querySelector("#mapNoteText").textContent = elements.layer.value === "cadastrations"
+    ? "La couche affiche les cadastrations détectées dans le tableau Excel; les coordonnées proviennent de Bexio."
+    : "Les dossiers sans coordonnées restent accessibles dans la liste.";
+  applyFilters();
+});
 elements.commune.addEventListener("change", applyFilters);
 elements.year.addEventListener("change", applyFilters);
 elements.reset.addEventListener("click", () => { elements.search.value = ""; elements.commune.value = ""; elements.year.value = ""; applyFilters(); });

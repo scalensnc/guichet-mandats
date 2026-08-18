@@ -1,5 +1,6 @@
 param(
     [switch]$DepuisCsv,
+    [string]$MutationsXlsx,
     [string]$Message = "Mise a jour des mandats"
 )
 
@@ -71,13 +72,16 @@ try {
     if ($DepuisCsv) {
         $Arguments += "--from-csv"
     }
+    if ($MutationsXlsx) {
+        $Arguments += @("--mutations-xlsx", $MutationsXlsx)
+    }
 
     & python @Arguments
     if ($LASTEXITCODE -ne 0) {
         throw "La mise a jour du portail a echoue."
     }
 
-    Invoke-ProjectGit -Arguments @("add", "--", "portal/data/projects.json") | Out-Null
+    Invoke-ProjectGit -Arguments @("add", "--", "portal/data/projects.json", "portal/data/cadastrations.json") | Out-Null
 
     $DiffExitCode = Invoke-ProjectGit `
         -Arguments @("diff", "--cached", "--quiet") `

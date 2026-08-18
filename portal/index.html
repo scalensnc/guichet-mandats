@@ -33,6 +33,7 @@
         <div><strong id="totalStat">—</strong><span>dossiers</span></div>
         <div><strong id="mappedStat">—</strong><span>localisés</span></div>
         <div><strong id="communesStat">—</strong><span>communes</span></div>
+        <div class="cadastration-stat"><strong id="cadastrationStat">—</strong><span>cadastrations à faire</span></div>
       </div>
     </section>
 
@@ -45,6 +46,7 @@
             <input id="searchInput" type="search" placeholder="N°, adresse, commune, parcelle…" autocomplete="off">
           </label>
           <div class="filter-row">
+            <label><span>Couche</span><select id="layerFilter"><option value="projects">Mandats Bexio</option><option value="cadastrations">Cadastrations à faire</option></select></label>
             <label><span>Commune</span><select id="communeFilter"><option value="">Toutes</option></select></label>
             <label><span>Année</span><select id="yearFilter"><option value="">Toutes</option></select></label>
           </div>
@@ -58,7 +60,7 @@
       </aside>
       <section class="map-panel" aria-label="Carte des mandats">
         <div id="map"></div>
-        <div class="map-note"><span></span>Les dossiers sans coordonnées restent accessibles dans la liste.</div>
+        <div class="map-note"><span></span><span id="mapNoteText">Les dossiers sans coordonnées restent accessibles dans la liste.</span></div>
       </section>
     </section>
   </main>
@@ -72,6 +74,9 @@
       <div><dt>Parcelle</dt><dd id="detailParcel"></dd></div>
       <div><dt>Date</dt><dd id="detailDate"></dd></div>
       <div><dt>Localisation</dt><dd id="detailLocation"></dd></div>
+      <div id="detailReceptionRow" hidden><dt>Réception</dt><dd id="detailReception"></dd></div>
+      <div id="detailMeasurementRow" hidden><dt>Mensuration</dt><dd id="detailMeasurement"></dd></div>
+      <div id="detailDetailsRow" hidden><dt>Détails</dt><dd id="detailDetails"></dd></div>
     </dl>
     <button id="showOnMap" class="primary-button" type="button">Voir sur la carte</button>
   </dialog>
@@ -79,7 +84,7 @@
   <template id="projectTemplate">
     <button class="project-card" type="button">
       <span class="card-top"><span class="project-number"></span><span class="project-date"></span></span>
-      <strong class="project-name"></strong>
+      <span class="card-title-row"><strong class="project-name"></strong><span class="project-kind" hidden>Cadastration</span></span>
       <span class="project-meta"><span class="pin" aria-hidden="true"></span><span class="project-commune"></span><span class="project-parcel"></span></span>
     </button>
   </template>
