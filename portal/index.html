@@ -46,9 +46,10 @@
             <input id="searchInput" type="search" placeholder="N°, adresse, commune, parcelle…" autocomplete="off">
           </label>
           <div class="filter-row">
-            <label><span>Couche</span><select id="layerFilter"><option value="projects">Mandats Bexio</option><option value="cadastrations">Cadastrations à faire</option></select></label>
+            <label class="full-row"><span>Couche</span><select id="layerFilter"><option value="projects">Mandats Bexio</option><option value="cadastrations">Cadastrations à faire</option></select></label>
             <label><span>Commune</span><select id="communeFilter"><option value="">Toutes</option></select></label>
             <label><span>Année</span><select id="yearFilter"><option value="">Toutes</option></select></label>
+            <label class="full-row"><span>Localisation</span><select id="locationFilter"><option value="">Tous les dossiers</option><option value="mapped">Localisés</option><option value="unmapped">Non localisés</option></select></label>
           </div>
           <button id="resetFilters" class="reset-button" type="button">Réinitialiser les filtres</button>
         </div>

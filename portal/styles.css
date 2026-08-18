@@ -95,7 +95,7 @@ h1 { margin: 0; font-size: clamp(26px, 2.3vw, 38px); font-weight: 550; line-heig
 .search-field input { width: 100%; min-width: 0; border: 0; outline: 0; background: transparent; color: var(--ink); font-size: 13px; }
 .search-field input::placeholder { color: #87918c; }
 .filter-row { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 9px; margin-top: 10px; }
-.filter-row label:first-child { grid-column: 1 / -1; }
+.filter-row .full-row { grid-column: 1 / -1; }
 .filter-row label { min-width: 0; display: grid; gap: 4px; color: var(--muted); font-size: 9px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
 .filter-row select { height: 38px; width: 100%; padding: 0 30px 0 10px; border: 1px solid var(--line); border-radius: 8px; outline: 0; background: white; color: var(--ink); font-size: 12px; text-transform: none; letter-spacing: 0; }
 .filter-row select:focus { border-color: var(--green-dark); }

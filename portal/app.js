@@ -6,6 +6,7 @@ const elements = {
   layer: document.querySelector("#layerFilter"),
   commune: document.querySelector("#communeFilter"),
   year: document.querySelector("#yearFilter"),
+  location: document.querySelector("#locationFilter"),
   reset: document.querySelector("#resetFilters"),
   list: document.querySelector("#projectList"),
   count: document.querySelector("#resultCount"),
@@ -119,11 +120,14 @@ function applyFilters() {
   const query = normalize(elements.search.value.trim());
   const commune = elements.commune.value;
   const year = elements.year.value;
+  const location = elements.location.value;
   state.filtered = activeProjects().filter((project) => {
     const haystack = normalize([project.id, project.name, project.commune, project.parcel, project.details].join(" "));
+    const isMapped = Number.isFinite(project.lat) && Number.isFinite(project.lon);
     return (!query || haystack.includes(query))
       && (!commune || project.commune === commune)
-      && (!year || String(displayDate(project) || "").startsWith(year));
+      && (!year || String(displayDate(project) || "").startsWith(year))
+      && (!location || (location === "mapped" ? isMapped : !isMapped));
   });
   state.visible = 30;
   renderList();
@@ -222,7 +226,8 @@ elements.layer.addEventListener("change", () => {
 });
 elements.commune.addEventListener("change", applyFilters);
 elements.year.addEventListener("change", applyFilters);
-elements.reset.addEventListener("click", () => { elements.search.value = ""; elements.commune.value = ""; elements.year.value = ""; applyFilters(); });
+elements.location.addEventListener("change", applyFilters);
+elements.reset.addEventListener("click", () => { elements.search.value = ""; elements.commune.value = ""; elements.year.value = ""; elements.location.value = ""; applyFilters(); });
 elements.loadMore.addEventListener("click", () => { state.visible += 30; renderList(); });
 document.querySelector(".dialog-close").addEventListener("click", () => elements.dialog.close());
 document.querySelector("#showOnMap").addEventListener("click", showSelectedOnMap);
