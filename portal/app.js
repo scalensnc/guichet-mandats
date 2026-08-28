@@ -66,8 +66,8 @@ function popupContent(project) {
   dossierNumber.className = "popup-number";
   title.className = "popup-title";
   meta.className = "popup-meta";
-  dossierNumber.textContent = `Numéro de dossier : ${project.id || "—"}`;
-  title.textContent = `Titre : ${project.name || "Dossier sans intitulé"}`;
+  dossierNumber.textContent = project.id || "—";
+  title.textContent = project.name || "Dossier sans intitulé";
   const type = project.kind === "cadastration" ? "Cadastration à faire · " : "";
   meta.textContent = `${type}${project.commune || "Commune inconnue"} · BF ${project.parcel || "—"}`;
   wrapper.append(dossierNumber, title, meta);
