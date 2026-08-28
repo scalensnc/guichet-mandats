@@ -30,7 +30,6 @@ DEFAULT_JSON = BASE_DIR / "portal" / "data" / "projects.json"
 DEFAULT_CADASTRATIONS_JSON = BASE_DIR / "portal" / "data" / "cadastrations.json"
 MANDATS_SCRIPT = BASE_DIR / "BDD-Mandats.py"
 MUTATIONS_WORKBOOK_CANDIDATES = (
-    Path(r"D:\SCALEN-Listing des mutations.xlsx"),
     Path(r"P:\07_Donnees\02-Données mutations\SCALEN-Listing des mutations.xlsx"),
 )
 
