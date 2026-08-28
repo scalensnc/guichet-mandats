@@ -60,14 +60,17 @@ function initMap() {
 
 function popupContent(project) {
   const wrapper = document.createElement("div");
+  const dossierNumber = document.createElement("p");
   const title = document.createElement("p");
   const meta = document.createElement("span");
+  dossierNumber.className = "popup-number";
   title.className = "popup-title";
   meta.className = "popup-meta";
-  title.textContent = project.name || `Dossier ${project.id || ""}`;
+  dossierNumber.textContent = `Numéro de dossier : ${project.id || "—"}`;
+  title.textContent = `Titre : ${project.name || "Dossier sans intitulé"}`;
   const type = project.kind === "cadastration" ? "Cadastration à faire · " : "";
   meta.textContent = `${type}${project.commune || "Commune inconnue"} · BF ${project.parcel || "—"}`;
-  wrapper.append(title, meta);
+  wrapper.append(dossierNumber, title, meta);
   return wrapper;
 }
 
