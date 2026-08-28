@@ -62,15 +62,12 @@ function popupContent(project) {
   const wrapper = document.createElement("div");
   const dossierNumber = document.createElement("p");
   const title = document.createElement("p");
-  const meta = document.createElement("span");
   dossierNumber.className = "popup-number";
   title.className = "popup-title";
-  meta.className = "popup-meta";
-  dossierNumber.textContent = project.id || "—";
+  const dossierId = String(project.id || "—");
+  dossierNumber.textContent = dossierId.replace(/^0(?=.)/, "");
   title.textContent = project.name || "Dossier sans intitulé";
-  const type = project.kind === "cadastration" ? "Cadastration à faire · " : "";
-  meta.textContent = `${type}${project.commune || "Commune inconnue"} · BF ${project.parcel || "—"}`;
-  wrapper.append(dossierNumber, title, meta);
+  wrapper.append(dossierNumber, title);
   return wrapper;
 }
 
