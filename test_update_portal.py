@@ -140,7 +140,7 @@ class PortalExportTests(unittest.TestCase):
             self.assertEqual(cadastration["name"], "Orbe - BF 45 - Rue du Test 1")
             self.assertEqual(cadastration["lon"], 6.53)
             self.assertEqual(cadastration["received_date"], "2025-12-09")
-            self.assertNotIn("remark", cadastration)
+            self.assertEqual(cadastration["remark"], "À planifier")
             self.assertNotIn("days_remaining", cadastration)
 
 

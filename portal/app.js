@@ -68,6 +68,12 @@ function popupContent(project) {
   dossierNumber.textContent = dossierId.replace(/^0(?=.)/, "");
   title.textContent = project.name || "Dossier sans intitulé";
   wrapper.append(dossierNumber, title);
+  if (project.kind === "cadastration") {
+    const remark = document.createElement("p");
+    remark.className = "popup-remark";
+    remark.textContent = `Remarque : ${project.remark || "—"}`;
+    wrapper.append(remark);
+  }
   return wrapper;
 }
 

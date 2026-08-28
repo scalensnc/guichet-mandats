@@ -333,6 +333,7 @@ def export_cadastrations(
                 "measurement": row["measurement"],
                 "mutation_type": row["mutation_type"],
                 "received_date": row["received_date"],
+                "remark": row["remark"],
             }
         )
 
