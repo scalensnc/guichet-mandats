@@ -26,8 +26,9 @@ class PortalExportTests(unittest.TestCase):
             " REMARQUE",
         )
 
-        def inline_cell(reference: str, value: str) -> str:
-            return f'<c r="{reference}" t="inlineStr"><is><t>{value}</t></is></c>'
+        def inline_cell(reference: str, value: str, style: int = 0) -> str:
+            style_attribute = f' s="{style}"' if style else ""
+            return f'<c r="{reference}"{style_attribute} t="inlineStr"><is><t>{value}</t></is></c>'
 
         header_cells = "".join(
             inline_cell(f"{chr(ord('A') + index)}2", heading)
@@ -44,7 +45,7 @@ class PortalExportTests(unittest.TestCase):
                 inline_cell("G3", "Cadastration"),
                 '<c r="H3"><v>46000</v></c>',
                 '<c r="I3"><v>30</v></c>',
-                inline_cell("J3", "À planifier"),
+                inline_cell("J3", "À planifier", style=1),
             )
         )
         division_cells = "".join(
@@ -77,10 +78,23 @@ class PortalExportTests(unittest.TestCase):
             'Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" '
             'Target="worksheets/sheet1.xml"/></Relationships>'
         )
+        styles = (
+            '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+            '<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
+            '<fills count="3">'
+            '<fill><patternFill patternType="none"/></fill>'
+            '<fill><patternFill patternType="gray125"/></fill>'
+            '<fill><patternFill patternType="solid"><fgColor rgb="FFFFFF00"/>'
+            '<bgColor indexed="64"/></patternFill></fill>'
+            '</fills>'
+            '<cellXfs count="2"><xf fillId="0"/><xf fillId="2" applyFill="1"/></cellXfs>'
+            '</styleSheet>'
+        )
         with zipfile.ZipFile(path, "w") as archive:
             archive.writestr("xl/workbook.xml", workbook)
             archive.writestr("xl/_rels/workbook.xml.rels", relationships)
             archive.writestr("xl/worksheets/sheet1.xml", worksheet)
+            archive.writestr("xl/styles.xml", styles)
 
     def test_export_normalizes_nulls_dates_and_coordinates(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -141,7 +155,25 @@ class PortalExportTests(unittest.TestCase):
             self.assertEqual(cadastration["lon"], 6.53)
             self.assertEqual(cadastration["received_date"], "2025-12-09")
             self.assertEqual(cadastration["remark"], "À planifier")
+            self.assertEqual(cadastration["remark_color"], "FFFF00")
+            self.assertEqual(cadastration["status"], "terrain_a_faire")
             self.assertNotIn("days_remaining", cadastration)
+
+    def test_cadastration_status_maps_excel_colors(self) -> None:
+        self.assertEqual(
+            update_portal._cadastration_status("FFFF00"), "terrain_a_faire"
+        )
+        self.assertEqual(
+            update_portal._cadastration_status("00B0F0"), "terrain_fait"
+        )
+        self.assertEqual(
+            update_portal._cadastration_status("FFC000"),
+            "cadastration_en_attente",
+        )
+        self.assertEqual(
+            update_portal._cadastration_status(None),
+            "cadastration_en_attente",
+        )
 
 
 if __name__ == "__main__":

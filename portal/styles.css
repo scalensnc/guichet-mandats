@@ -136,6 +136,9 @@ h1 { margin: 0; font-size: clamp(26px, 2.3vw, 38px); font-weight: 550; line-heig
 #map.cadastration-mode .marker-cluster-small div, #map.cadastration-mode .marker-cluster-medium div, #map.cadastration-mode .marker-cluster-large div { background: var(--orange); }
 .mandate-marker { width: 17px !important; height: 17px !important; margin: -8px 0 0 -8px !important; border: 3px solid white; border-radius: 50%; background: var(--green); box-shadow: 0 2px 8px rgba(14,24,33,.38); }
 .cadastration-marker { width: 19px !important; height: 19px !important; margin: -9px 0 0 -9px !important; border: 3px solid white; border-radius: 4px; background: var(--orange); box-shadow: 0 2px 8px rgba(14,24,33,.42); transform: rotate(45deg); }
+.cadastration-marker.status-terrain-a-faire { background: #f0cf18; }
+.cadastration-marker.status-cadastration-en-attente { background: var(--orange); }
+.cadastration-marker.status-terrain-fait { background: #1987c8; }
 .popup-number { margin: 0; color: var(--green-dark); font-size: 14px; font-weight: 800; line-height: 1.05; }
 .popup-title { margin: 0; color: var(--ink); font-size: 11px; font-weight: 500; line-height: 1.05; }
 .popup-remark { margin: 3px 0 0; color: var(--muted); font-size: 10px; line-height: 1.2; }

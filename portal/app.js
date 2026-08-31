@@ -81,10 +81,14 @@ function rebuildMarkers() {
   state.clusters.clearLayers();
   state.markers.clear();
   const isCadastration = elements.layer.value === "cadastrations";
-  const icon = L.divIcon({ className: isCadastration ? "cadastration-marker" : "mandate-marker", iconSize: isCadastration ? [19, 19] : [17, 17] });
   const markers = [];
   for (const project of state.filtered) {
     if (!Number.isFinite(project.lat) || !Number.isFinite(project.lon)) continue;
+    const statusClass = String(project.status || "cadastration_en_attente").replaceAll("_", "-");
+    const icon = L.divIcon({
+      className: isCadastration ? `cadastration-marker status-${statusClass}` : "mandate-marker",
+      iconSize: isCadastration ? [19, 19] : [17, 17],
+    });
     const marker = L.marker([project.lat, project.lon], { icon, title: project.name || project.id || "Mandat" });
     marker.bindPopup(() => popupContent(project));
     marker.on("click", () => { state.selected = project; });
@@ -226,7 +230,7 @@ elements.layer.addEventListener("change", () => {
   document.querySelector(".map-note").classList.toggle("is-cadastration", elements.layer.value === "cadastrations");
   document.querySelector("#map").classList.toggle("cadastration-mode", elements.layer.value === "cadastrations");
   document.querySelector("#mapNoteText").textContent = elements.layer.value === "cadastrations"
-    ? "La couche affiche les cadastrations détectées dans le tableau Excel; les coordonnées proviennent de Bexio."
+    ? "Jaune : terrain à faire · Orange : cadastration en attente · Bleu : terrain fait."
     : "Les dossiers sans coordonnées restent accessibles dans la liste.";
   applyFilters();
 });

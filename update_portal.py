@@ -196,6 +196,67 @@ def _xlsx_rows(workbook_path: Path, sheet_name: str) -> list[list[object]]:
     return rows
 
 
+def _xlsx_row_fill_colors(
+    workbook_path: Path, sheet_name: str
+) -> list[dict[int, Optional[str]]]:
+    """Retourne les couleurs de fond des cellules, alignées sur les lignes lues."""
+
+    try:
+        with zipfile.ZipFile(workbook_path) as archive:
+            sheet = ElementTree.fromstring(
+                archive.read(_xlsx_sheet_path(archive, sheet_name))
+            )
+            styles = ElementTree.fromstring(archive.read("xl/styles.xml"))
+    except KeyError:
+        return []
+    except (zipfile.BadZipFile, ElementTree.ParseError) as error:
+        raise ValueError(f"Classeur Excel illisible: {workbook_path}") from error
+
+    fills_node = styles.find(f"{{{XLSX_NS}}}fills")
+    formats_node = styles.find(f"{{{XLSX_NS}}}cellXfs")
+    if fills_node is None or formats_node is None:
+        return []
+    fills = list(fills_node)
+    formats = list(formats_node)
+
+    row_colors: list[dict[int, Optional[str]]] = []
+    for row_node in sheet.findall(f".//{{{XLSX_NS}}}sheetData/{{{XLSX_NS}}}row"):
+        colors: dict[int, Optional[str]] = {}
+        for cell in row_node.findall(f"{{{XLSX_NS}}}c"):
+            reference = cell.get("r") or ""
+            try:
+                style_index = int(cell.get("s") or 0)
+                fill_index = int(formats[style_index].get("fillId") or 0)
+                fill = fills[fill_index]
+            except (IndexError, ValueError):
+                continue
+            pattern = fill.find(f"{{{XLSX_NS}}}patternFill")
+            foreground = (
+                pattern.find(f"{{{XLSX_NS}}}fgColor")
+                if pattern is not None
+                else None
+            )
+            color = None
+            if foreground is not None:
+                rgb = foreground.get("rgb")
+                if rgb:
+                    color = rgb[-6:].upper()
+                elif foreground.get("theme") == "0":
+                    color = "FFFFFF"
+            colors[_column_index(reference)] = color
+        row_colors.append(colors)
+    return row_colors
+
+
+def _cadastration_status(remark_color: Optional[str]) -> str:
+    color = (remark_color or "").upper()
+    if color == "FFFF00":
+        return "terrain_a_faire"
+    if color == "00B0F0":
+        return "terrain_fait"
+    return "cadastration_en_attente"
+
+
 def _find_column(headings: list[object], expected: str) -> int:
     expected_key = _normalise_heading(expected)
     for index, heading in enumerate(headings):
@@ -238,6 +299,7 @@ def read_cadastrations(workbook_path: Path) -> list[dict[str, object]]:
     if not workbook_path.is_file():
         raise ValueError(f"Classeur des mutations introuvable: {workbook_path}")
     rows = _xlsx_rows(workbook_path, "A faire")
+    row_fill_colors = _xlsx_row_fill_colors(workbook_path, "A faire")
     header_position = next(
         (
             index
@@ -272,6 +334,11 @@ def read_cadastrations(workbook_path: Path) -> list[dict[str, object]]:
         if not project_id:
             continue
         remaining = _row_value(row, columns["remaining"])
+        remark_color = (
+            row_fill_colors[source_row - 1].get(columns["remark"])
+            if source_row <= len(row_fill_colors)
+            else None
+        )
         cadastration_rows.append(
             {
                 "id": project_id,
@@ -289,6 +356,8 @@ def read_cadastrations(workbook_path: Path) -> list[dict[str, object]]:
                     else None
                 ),
                 "remark": _text(_row_value(row, columns["remark"])),
+                "remark_color": remark_color,
+                "status": _cadastration_status(remark_color),
                 "source_row": source_row,
             }
         )
@@ -333,6 +402,8 @@ def export_cadastrations(
                 "mutation_type": row["mutation_type"],
                 "received_date": row["received_date"],
                 "remark": row["remark"],
+                "remark_color": row["remark_color"],
+                "status": row["status"],
             }
         )
 
