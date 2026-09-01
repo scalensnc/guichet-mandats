@@ -40,10 +40,35 @@ function displayDate(project) {
 function initMap() {
   state.map = L.map("map", { zoomControl: false }).setView([46.65, 6.62], 9);
   L.control.zoom({ position: "topright" }).addTo(state.map);
-  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+  const osmLayer = L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
     maxZoom: 19,
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-  }).addTo(state.map);
+  });
+  const cadastralLayer = L.tileLayer.wms("https://wms.cadastralwebmap.ch/WMS", {
+    layers: "cm_wms",
+    format: "image/png",
+    transparent: false,
+    version: "1.3.0",
+    maxZoom: 19,
+    uppercase: true,
+    attribution: '&copy; <a href="https://www.cadastre.ch/fr/service-de-consultation-cadastralwebmap-wms">Mensuration officielle suisse</a>',
+  });
+  osmLayer.addTo(state.map);
+  const backgroundControl = L.control.layers(
+    {
+      OpenStreetMap: osmLayer,
+      "Cadastre suisse": cadastralLayer,
+    },
+    null,
+    { position: "topright" },
+  ).addTo(state.map);
+  const backgroundToggle = backgroundControl
+    .getContainer()
+    .querySelector(".leaflet-control-layers-toggle");
+  if (backgroundToggle) {
+    backgroundToggle.title = "Choisir le fond de plan";
+    backgroundToggle.setAttribute("aria-label", "Choisir le fond de plan");
+  }
   state.clusters = L.markerClusterGroup({ showCoverageOnHover: false, maxClusterRadius: 48 });
   state.map.addLayer(state.clusters);
 

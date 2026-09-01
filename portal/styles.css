@@ -130,6 +130,28 @@ h1 { margin: 0; font-size: clamp(26px, 2.3vw, 38px); font-weight: 550; line-heig
 #mapNoteText { display: inline; }
 .leaflet-control-zoom { border: 0 !important; box-shadow: 0 8px 20px rgba(14,24,33,.17) !important; }
 .leaflet-control-zoom a { color: var(--ink) !important; border-color: var(--line) !important; }
+.leaflet-control-layers {
+  border: 0 !important;
+  border-radius: 8px !important;
+  box-shadow: 0 8px 20px rgba(14,24,33,.17) !important;
+  color: var(--ink);
+  font: 700 11px/1.2 "Avenir Next", Avenir, Inter, ui-sans-serif, system-ui, sans-serif;
+}
+.leaflet-control-layers-toggle {
+  width: auto !important;
+  min-width: 66px;
+  height: 34px !important;
+  padding: 0 11px;
+  display: grid !important;
+  place-items: center;
+  background-image: none !important;
+  color: var(--ink);
+}
+.leaflet-control-layers-toggle::after { content: "Fonds"; }
+.leaflet-control-layers-expanded { padding: 9px 11px !important; }
+.leaflet-control-layers-expanded .leaflet-control-layers-toggle { display: none !important; }
+.leaflet-control-layers-base label { margin: 4px 0; cursor: pointer; }
+.leaflet-control-layers-selector { accent-color: var(--green-dark); }
 .marker-cluster-small, .marker-cluster-medium, .marker-cluster-large { background: rgba(104,176,77,.28); }
 .marker-cluster-small div, .marker-cluster-medium div, .marker-cluster-large div { background: var(--green-dark); color: white; font-weight: 800; }
 #map.cadastration-mode .marker-cluster-small, #map.cadastration-mode .marker-cluster-medium, #map.cadastration-mode .marker-cluster-large { background: rgba(217,120,36,.28); }
